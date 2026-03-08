@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
-using System.Threading.Channels;
+using Api.Infrastructure.Sse;
 
 namespace Api.Features.Workshop.UberEatsNaive;
 
@@ -87,75 +86,6 @@ public sealed class NaiveUberEatsOrderStore : INaiveUberEatsOrderStore
     }
 }
 
-public sealed record NaiveUberEatsNotification(
-    Guid EventId,
-    Guid OrderId,
-    string EventType,
-    string Message,
-    DateTime OccurredAtUtc);
-
-public interface INaiveUberEatsNotificationStream
-{
-    IAsyncEnumerable<NaiveUberEatsNotification> Subscribe(
-        string actorType,
-        Guid actorId,
-        CancellationToken cancellationToken);
-
-    ValueTask PublishAsync(string actorType, Guid actorId, NaiveUberEatsNotification notification,
-        CancellationToken cancellationToken);
-}
-
-public sealed class NaiveUberEatsNotificationStream : INaiveUberEatsNotificationStream
-{
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<Guid, Channel<NaiveUberEatsNotification>>> _actors =
-        new();
-
-    public async IAsyncEnumerable<NaiveUberEatsNotification> Subscribe(
-        string actorType,
-        Guid actorId,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var key = BuildKey(actorType, actorId);
-        var subscriberId = Guid.NewGuid();
-        var channel = Channel.CreateUnbounded<NaiveUberEatsNotification>();
-        var subscribers = _actors.GetOrAdd(key, _ => new ConcurrentDictionary<Guid, Channel<NaiveUberEatsNotification>>());
-        subscribers[subscriberId] = channel;
-
-        try
-        {
-            await foreach (var notification in channel.Reader.ReadAllAsync(cancellationToken))
-                yield return notification;
-        }
-        finally
-        {
-            if (_actors.TryGetValue(key, out var currentSubscribers))
-            {
-                currentSubscribers.TryRemove(subscriberId, out _);
-                if (currentSubscribers.IsEmpty)
-                    _actors.TryRemove(key, out _);
-            }
-
-            channel.Writer.TryComplete();
-        }
-    }
-
-    public ValueTask PublishAsync(string actorType, Guid actorId, NaiveUberEatsNotification notification,
-        CancellationToken cancellationToken)
-    {
-        var key = BuildKey(actorType, actorId);
-        if (!_actors.TryGetValue(key, out var subscribers))
-            return ValueTask.CompletedTask;
-
-        foreach (var (_, channel) in subscribers) channel.Writer.TryWrite(notification);
-        return ValueTask.CompletedTask;
-    }
-
-    private static string BuildKey(string actorType, Guid actorId)
-    {
-        return $"{actorType}:{actorId:N}";
-    }
-}
-
 public interface INaiveUberEatsNotifier
 {
     Task NotifyRestaurantOrderPlacedAsync(NaiveUberEatsOrder order, bool forceFailure, CancellationToken cancellationToken);
@@ -163,7 +93,7 @@ public interface INaiveUberEatsNotifier
 }
 
 public sealed class NaiveUberEatsNotifier(
-    INaiveUberEatsNotificationStream stream,
+    IUberEatsNotificationStream stream,
     ILogger<NaiveUberEatsNotifier> logger) : INaiveUberEatsNotifier
 {
     public async Task NotifyRestaurantOrderPlacedAsync(
@@ -179,7 +109,7 @@ public sealed class NaiveUberEatsNotifier(
         await stream.PublishAsync(
             "restaurant",
             order.RestaurantId,
-            new NaiveUberEatsNotification(
+            new UberEatsNotification(
                 Guid.NewGuid(),
                 order.Id,
                 "order-placed",
@@ -203,7 +133,7 @@ public sealed class NaiveUberEatsNotifier(
         await stream.PublishAsync(
             "customer",
             order.CustomerId,
-            new NaiveUberEatsNotification(
+            new UberEatsNotification(
                 Guid.NewGuid(),
                 order.Id,
                 "order-accepted",

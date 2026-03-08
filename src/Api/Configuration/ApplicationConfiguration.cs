@@ -1,5 +1,6 @@
 using System.Reflection;
 using Api.Features.Workshop.UberEatsNaive;
+using Api.Infrastructure.Sse;
 using Api.Configuration.Cqrs;
 using Api.Configuration.Integrations;
 using Api.Infrastructure.Persistence.Configs;
@@ -29,7 +30,7 @@ internal static class ApplicationConfiguration
         builder.Services.AddScoped<IMessage, MessageService>();
         builder.Services.AddScoped<IEventMapper, EventMapper>();
         builder.Services.AddSingleton<INaiveUberEatsOrderStore, NaiveUberEatsOrderStore>();
-        builder.Services.AddSingleton<INaiveUberEatsNotificationStream, NaiveUberEatsNotificationStream>();
+        builder.Services.AddSingleton<IUberEatsNotificationStream, UberEatsNotificationStream>();
         builder.Services.AddScoped<INaiveUberEatsNotifier, NaiveUberEatsNotifier>();
         return builder;
     }
