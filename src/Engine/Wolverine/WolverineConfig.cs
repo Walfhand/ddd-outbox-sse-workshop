@@ -1,6 +1,7 @@
 using System.Reflection;
 using DomainEssentials.Core.Events;
 using Engine.EFCore;
+using Engine.Exceptions;
 using Humanizer;
 using JasperFx;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,9 @@ public static class WolverineConfig
                     listener.Sequential();
                     listener.MaximumParallelMessages(1);
                 });
+
+            opts.Policies.OnException<RetryableIntegrationException>()
+                .RetryTimes(30);
 
             opts.Policies.OnException<Exception>()
                 .RetryTimes(1);

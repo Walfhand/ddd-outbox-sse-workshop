@@ -1,7 +1,9 @@
 using System.Reflection;
-using Api.Features.Workshop.UberEatsNaive;
 using Api.Configuration.Cqrs;
 using Api.Configuration.Integrations;
+using Api.Features.Notifications.Customers;
+using Api.Features.Notifications.Restaurants;
+using Api.Features.Notifications.Shared;
 using Api.Infrastructure.Persistence.Configs;
 using Engine.Core.Events;
 using Engine.Logging;
@@ -28,9 +30,7 @@ internal static class ApplicationConfiguration
 
         builder.Services.AddScoped<IMessage, MessageService>();
         builder.Services.AddScoped<IEventMapper, EventMapper>();
-        builder.Services.AddSingleton<INaiveUberEatsOrderStore, NaiveUberEatsOrderStore>();
-        builder.Services.AddSingleton<INaiveUberEatsNotificationStream, NaiveUberEatsNotificationStream>();
-        builder.Services.AddScoped<INaiveUberEatsNotifier, NaiveUberEatsNotifier>();
+        builder.Services.AddSingleton<IUberEatsSseHub, UberEatsSseHub>();
         return builder;
     }
 
@@ -38,7 +38,8 @@ internal static class ApplicationConfiguration
     {
         app.UseExceptionHandler();
         app.UseMinimalEndpoints();
-        app.MapNaiveUberEatsStreams();
+        app.MapCustomerNotificationStream();
+        app.MapRestaurantNotificationStream();
         app.UseMigration();
         return app;
     }
