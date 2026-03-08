@@ -1,7 +1,7 @@
 using System.Reflection;
+using Api.Features.Workshop.UberEatsNaive;
 using Api.Configuration.Cqrs;
 using Api.Configuration.Integrations;
-using Api.Infrastructure.Notifications;
 using Api.Infrastructure.Persistence.Configs;
 using Engine.Core.Events;
 using Engine.Logging;
@@ -38,6 +38,7 @@ internal static class ApplicationConfiguration
     {
         app.UseExceptionHandler();
         app.UseMinimalEndpoints();
+        app.MapNaiveUberEatsStreams();
         app.UseMigration();
         return app;
     }

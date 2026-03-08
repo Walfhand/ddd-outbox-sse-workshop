@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
-namespace Api.Infrastructure.Notifications;
+namespace Api.Features.Workshop.UberEatsNaive;
 
 public enum NaiveUberEatsOrderStatus
 {
