@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class WorkshopUberEatsDddOutbox : Migration
+    public partial class AddOrder : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,7 @@ namespace Api.Infrastructure.Persistence.Migrations
                 name: "dbo");
 
             migrationBuilder.CreateTable(
-                name: "uber_eats_orders",
+                name: "uber_eats_order",
                 schema: "dbo",
                 columns: table => new
                 {
@@ -35,48 +35,42 @@ namespace Api.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_uber_eats_orders", x => x.id);
+                    table.PrimaryKey("pk_uber_eats_order", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "uber_eats_order_items",
+                name: "uber_eats_order_item",
                 schema: "dbo",
                 columns: table => new
                 {
+                    uber_eats_order_id = table.Column<Guid>(type: "uuid", nullable: false),
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    quantity = table.Column<int>(type: "integer", nullable: false),
-                    order_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    quantity = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_uber_eats_order_items", x => x.id);
+                    table.PrimaryKey("pk_uber_eats_order_item", x => new { x.uber_eats_order_id, x.id });
                     table.ForeignKey(
-                        name: "fk_uber_eats_order_items_uber_eats_order_order_id",
-                        column: x => x.order_id,
+                        name: "fk_uber_eats_order_item_uber_eats_order_uber_eats_order_id",
+                        column: x => x.uber_eats_order_id,
                         principalSchema: "dbo",
-                        principalTable: "uber_eats_orders",
+                        principalTable: "uber_eats_order",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_uber_eats_order_items_order_id",
-                schema: "dbo",
-                table: "uber_eats_order_items",
-                column: "order_id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "uber_eats_order_items",
+                name: "uber_eats_order_item",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "uber_eats_orders",
+                name: "uber_eats_order",
                 schema: "dbo");
         }
     }

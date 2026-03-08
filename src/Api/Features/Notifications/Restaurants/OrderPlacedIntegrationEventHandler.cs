@@ -22,7 +22,7 @@ public static class OrderPlacedIntegrationEventHandler
 
         if (!sent)
         {
-            await Task.Delay(1000, cancellationToken);
+            await Task.Delay(30000, cancellationToken);
             throw new SseTargetOfflineException(
                 $"No active restaurant SSE connection for {@event.RestaurantId}. Trigger retry.");
         }

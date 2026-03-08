@@ -23,7 +23,7 @@ namespace Api.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Api.Domain.Orders.AggregateRoots.UberEatsOrder", b =>
+            modelBuilder.Entity("Api.Domain.UberEatsOrders.AggregateRoots.UberEatsOrder", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -76,21 +76,25 @@ namespace Api.Infrastructure.Persistence.Migrations
                         .HasColumnName("version");
 
                     b.HasKey("Id")
-                        .HasName("pk_uber_eats_orders");
+                        .HasName("pk_uber_eats_order");
 
-                    b.ToTable("uber_eats_orders", "dbo");
+                    b.ToTable("uber_eats_order", "dbo");
                 });
 
-            modelBuilder.Entity("Api.Domain.Orders.AggregateRoots.UberEatsOrder", b =>
+            modelBuilder.Entity("Api.Domain.UberEatsOrders.AggregateRoots.UberEatsOrder", b =>
                 {
-                    b.OwnsMany("Api.Domain.Orders.AggregateRoots.UberEatsOrderItem", "Items", b1 =>
+                    b.OwnsMany("Api.Domain.UberEatsOrders.AggregateRoots.ValueObjects.UberEatsOrderItem", "Items", b1 =>
                         {
-                            b1.Property<int>("id")
+                            b1.Property<Guid>("UberEatsOrderId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("uber_eats_order_id");
+
+                            b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("integer")
                                 .HasColumnName("id");
 
-                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("id"));
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
 
                             b1.Property<string>("Name")
                                 .IsRequired()
@@ -102,21 +106,14 @@ namespace Api.Infrastructure.Persistence.Migrations
                                 .HasColumnType("integer")
                                 .HasColumnName("quantity");
 
-                            b1.Property<Guid>("order_id")
-                                .HasColumnType("uuid")
-                                .HasColumnName("order_id");
+                            b1.HasKey("UberEatsOrderId", "Id")
+                                .HasName("pk_uber_eats_order_item");
 
-                            b1.HasKey("id")
-                                .HasName("pk_uber_eats_order_items");
-
-                            b1.HasIndex("order_id")
-                                .HasDatabaseName("ix_uber_eats_order_items_order_id");
-
-                            b1.ToTable("uber_eats_order_items", "dbo");
+                            b1.ToTable("uber_eats_order_item", "dbo");
 
                             b1.WithOwner()
-                                .HasForeignKey("order_id")
-                                .HasConstraintName("fk_uber_eats_order_items_uber_eats_order_order_id");
+                                .HasForeignKey("UberEatsOrderId")
+                                .HasConstraintName("fk_uber_eats_order_item_uber_eats_order_uber_eats_order_id");
                         });
 
                     b.Navigation("Items");

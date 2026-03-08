@@ -22,7 +22,7 @@ public static class OrderAcceptedIntegrationEventHandler
 
         if (!sent)
         {
-            await Task.Delay(1000, cancellationToken);
+            await Task.Delay(30000, cancellationToken);
             throw new SseTargetOfflineException(
                 $"No active customer SSE connection for {@event.CustomerId}. Trigger retry.");
         }

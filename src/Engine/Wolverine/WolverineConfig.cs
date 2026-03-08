@@ -49,7 +49,7 @@ public static class WolverineConfig
                 });
 
             opts.Policies.OnException<RetryableIntegrationException>()
-                .RetryTimes(30);
+                .RetryTimes(25);
 
             opts.Policies.OnException<Exception>()
                 .RetryTimes(1);
